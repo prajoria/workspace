@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isOnPremDeployment } from "~/lib/onPremFeatureFlags";
 import { useAuthStore } from "~/lib/state/auth";
 import type { ProLoginResponse } from "~/types/auth.type";
 
 // Mock all external dependencies
 vi.mock("~/api/auth.api", () => ({
   putEnabledBundles: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("~/lib/onPremFeatureFlags", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("~/lib/onPremFeatureFlags")>()),
+  isOnPremDeployment: vi.fn(),
 }));
 
 vi.mock("~/lib/state/copilot", () => ({
@@ -94,6 +100,7 @@ describe("useAuthStore - Login Tests", () => {
   });
 
   beforeEach(() => {
+    vi.mocked(isOnPremDeployment).mockReturnValue(false);
     useAuthStore.setState({
       user: null,
       enabledBundles: ["openbb"],
@@ -274,6 +281,27 @@ describe("useAuthStore - Login Tests", () => {
 
       expect(result).toBe(false);
       expect(useAuthStore.getState().needsOnboarding).toBe(true);
+    });
+
+    it("does not require hosted onboarding in an on-prem deployment", async () => {
+      vi.mocked(isOnPremDeployment).mockReturnValue(true);
+      const response = createMockLoginResponse({
+        developer_onboarding_info: null,
+        user: {
+          first_name: "Workspace",
+          last_name: "Admin",
+          primary_usage: "",
+          accepted_pro_tos: true,
+          // @ts-expect-error - ignored for now
+          pro_display_settings: {},
+        },
+      });
+      const { login } = useAuthStore.getState();
+
+      const result = await login(response);
+
+      expect(result).toBe(true);
+      expect(useAuthStore.getState().needsOnboarding).toBe(false);
     });
 
     it("returns true when skipOnboarding is true", async () => {
