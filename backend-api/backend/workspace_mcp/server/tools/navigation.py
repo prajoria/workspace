@@ -38,7 +38,7 @@ def register(server: FastMCP, run: CommandRunner) -> None:
         )
     )
     async def manage_navigation_bar(
-        operation: NavigationOperation,
+        operation: str,
         dashboard_id: Annotated[
             str | None, Field(description=DASHBOARD_ID_PARAM)
         ] = None,
@@ -109,7 +109,7 @@ def register(server: FastMCP, run: CommandRunner) -> None:
         )
     )
     async def navigate_workspace(
-        operation: WorkspaceNavigationOperation,
+        operation: str,
         dashboard_id: Annotated[
             str | None, Field(description=DASHBOARD_ID_PARAM)
         ] = None,

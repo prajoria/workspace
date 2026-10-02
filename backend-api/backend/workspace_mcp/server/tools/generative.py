@@ -31,7 +31,7 @@ def register(server: FastMCP, run: CommandRunner) -> None:
     )
     async def add_generative_widget(  # noqa: PLR0913, PLR0917
         widget_type: Annotated[
-            GenerativeWidgetType,
+            str,
             Field(
                 description=(
                     "Use widget_type='note' for rich text notes such as rich_note."

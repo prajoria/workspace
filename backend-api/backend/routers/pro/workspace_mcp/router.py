@@ -40,7 +40,6 @@ bridge_manager = BridgeSessionManager(
 @router.get(
     "/pro/workspace-mcp/tokens",
     response_model=list[TokenMetadata],
-    dependencies=[Depends(auth_helpers.check_openbb)],
 )
 async def list_tokens(
     user: Annotated[
@@ -63,7 +62,6 @@ async def list_tokens(
 @router.post(
     "/pro/workspace-mcp/tokens",
     response_model=TokenCreateResponse,
-    dependencies=[Depends(auth_helpers.check_openbb)],
 )
 async def create_token(
     request: TokenCreateRequest,
@@ -98,7 +96,6 @@ async def create_token(
 @router.delete(
     "/pro/workspace-mcp/tokens/{token_uuid}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(auth_helpers.check_openbb)],
 )
 async def revoke_token(
     token_uuid: UUID,
@@ -125,7 +122,6 @@ async def revoke_token(
 @router.post(
     "/pro/workspace-mcp/bridge/session/start",
     response_model=BrowserSessionStartResponse,
-    dependencies=[Depends(auth_helpers.check_openbb)],
 )
 async def start_bridge_session(
     payload: BrowserSessionStartRequest,

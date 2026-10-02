@@ -29,7 +29,7 @@ def register(server: FastMCP, run: CommandRunner) -> None:
         )
     )
     async def manage_dashboard(
-        operation: DashboardOperation,
+        operation: str,
         dashboard_id: Annotated[
             str | None, Field(description=DASHBOARD_ID_PARAM)
         ] = None,

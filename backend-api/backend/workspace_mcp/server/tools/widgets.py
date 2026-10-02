@@ -216,16 +216,16 @@ def register(
         )
     )
     async def get_widget_schema(
-        origin: Annotated[str, Field(description=ORIGIN_PARAM)],
+        origin: Annotated[str | None, Field(description=ORIGIN_PARAM)] = None,
         widget_id: Annotated[
-            str,
+            str | None,
             Field(
                 description=(
                     "Widget type identifier from list_available_widgets or the "
                     "workspace snapshot."
                 )
             ),
-        ],
+        ] = None,
     ) -> ToolResponse:
         """Fetch one deterministic widget schema from the Workspace widget library."""
         if not origin or not widget_id:
@@ -331,16 +331,16 @@ def register(
         )
     )
     async def create_widget(
-        origin: Annotated[str, Field(description=ORIGIN_PARAM)],
+        origin: Annotated[str | None, Field(description=ORIGIN_PARAM)] = None,
         widget_id: Annotated[
-            str,
+            str | None,
             Field(
                 description=(
                     "Widget type identifier from list_available_widgets or the "
                     "workspace snapshot."
                 )
             ),
-        ],
+        ] = None,
         dashboard_id: DashboardId = None,
         data_args: Annotated[
             dict[str, Any] | None,

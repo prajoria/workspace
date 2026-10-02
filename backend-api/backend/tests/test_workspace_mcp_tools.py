@@ -1,9 +1,8 @@
 """Behavior tests for the Workspace MCP sidecar tool surface.
 
-Covers the WorkspaceBench hardening work: Literal-typed operation params,
-required identifiers, sidecar-side guards, warnings passthrough, explicit
-empty-config preservation, manage_dashboard update targeting, chart_params
-snake_case tolerance, and error envelope completeness.
+Covers hosted-compatible input schemas, explicit runtime guards, warnings
+passthrough, empty-config preservation, dashboard update targeting,
+chart_params tolerance, and error envelope completeness.
 """
 
 import json
@@ -72,46 +71,25 @@ async def tool_schemas(server) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# H1: operation enums surfaced in the JSON schema and enforced by FastMCP
+# H1: hosted-compatible schemas with explicit runtime validation
 # ---------------------------------------------------------------------------
 
 
-async def test_operation_enums_are_surfaced_in_tool_schemas(server):
+async def test_operation_and_widget_type_schemas_remain_hosted_compatible(server):
     schemas = await tool_schemas(server)
 
-    assert schemas["manage_dashboard"]["properties"]["operation"]["enum"] == [
-        "create",
-        "read",
-        "update",
+    string_properties = [
+        ("manage_dashboard", "operation"),
+        ("manage_navigation_bar", "operation"),
+        ("navigate_workspace", "operation"),
+        ("manage_backends", "operation"),
+        ("manage_apps", "operation"),
+        ("add_generative_widget", "widget_type"),
     ]
-    assert schemas["manage_navigation_bar"]["properties"]["operation"]["enum"] == [
-        "create",
-        "add_tabs",
-        "remove_tabs",
-        "rename_tabs",
-    ]
-    assert schemas["navigate_workspace"]["properties"]["operation"]["enum"] == [
-        "dashboard",
-        "tab",
-    ]
-    assert schemas["manage_backends"]["properties"]["operation"]["enum"] == [
-        "list",
-        "add",
-        "update",
-        "refresh",
-        "remove",
-    ]
-    assert schemas["manage_apps"]["properties"]["operation"]["enum"] == [
-        "list",
-        "read",
-        "instantiate",
-    ]
-    assert schemas["add_generative_widget"]["properties"]["widget_type"]["enum"] == [
-        "note",
-        "table",
-        "chart",
-        "html",
-    ]
+    for tool_name, property_name in string_properties:
+        property_schema = schemas[tool_name]["properties"][property_name]
+        assert property_schema["type"] == "string"
+        assert "enum" not in property_schema
 
 
 async def test_invalid_operation_is_rejected_with_allowed_values(server, recorded):
@@ -120,32 +98,47 @@ async def test_invalid_operation_is_rejected_with_allowed_values(server, recorde
             "manage_dashboard", {"operation": "delete"}, raise_on_error=False
         )
 
-    assert result.is_error
-    text = result.content[0].text
-    assert "'create', 'read' or 'update'" in text
+    body = payload(result)
+    assert body["ok"] is False
+    assert body["error"]["code"] == "invalid_request"
+    assert body["error"]["details"]["allowed_operations"] == [
+        "create",
+        "read",
+        "update",
+    ]
     assert recorded == []
 
 
 # ---------------------------------------------------------------------------
-# H2: unconditionally required params are schema-required
+# H2: hosted-compatible nullable identifiers with explicit runtime guards
 # ---------------------------------------------------------------------------
 
 
-async def test_get_widget_schema_and_create_widget_require_origin_and_widget_id(server):
+async def test_widget_origin_and_id_schemas_remain_optional_and_nullable(server):
     schemas = await tool_schemas(server)
 
-    assert schemas["get_widget_schema"]["required"] == ["origin", "widget_id"]
-    assert schemas["create_widget"]["required"] == ["origin", "widget_id"]
+    for tool_name in ("get_widget_schema", "create_widget"):
+        assert "origin" not in schemas[tool_name].get("required", [])
+        assert "widget_id" not in schemas[tool_name].get("required", [])
+        for property_name in ("origin", "widget_id"):
+            assert schemas[tool_name]["properties"][property_name]["anyOf"] == [
+                {"type": "string"},
+                {"type": "null"},
+            ]
 
 
-async def test_create_widget_without_origin_is_rejected_by_schema(server, recorded):
+async def test_create_widget_without_origin_is_rejected_by_runtime_guard(
+    server, recorded
+):
     async with Client(server) as client:
         result = await client.call_tool(
             "create_widget", {"widget_id": "w"}, raise_on_error=False
         )
 
-    assert result.is_error
-    assert "origin" in result.content[0].text
+    body = payload(result)
+    assert body["ok"] is False
+    assert body["error"]["code"] == "invalid_request"
+    assert body["error"]["details"] == {"required": ["origin", "widget_id"]}
     assert recorded == []
 
 
