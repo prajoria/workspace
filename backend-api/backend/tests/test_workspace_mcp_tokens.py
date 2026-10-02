@@ -46,3 +46,33 @@ async def test_create_list_and_revoke_workspace_mcp_token(auth_client):
 
     assert list_after_revoke.status_code == 200
     assert list_after_revoke.json() == []
+
+
+@pytest.mark.asyncio
+async def test_workspace_mcp_user_routes_do_not_require_service_auth(auth_client):
+    del auth_client.headers["X-OpenBB-Authorization"]
+
+    create_response = await auth_client.post(
+        "/pro/workspace-mcp/tokens",
+        json={"name": "Self-hosted agent"},
+    )
+
+    assert create_response.status_code == 200
+    token_uuid = create_response.json()["uuid"]
+
+    bridge_response = await auth_client.post(
+        "/pro/workspace-mcp/bridge/session/start",
+        json={
+            "client_name": "workspace-ui",
+            "current_dashboard_id": None,
+            "current_tab_id": None,
+        },
+    )
+
+    assert bridge_response.status_code == 200
+    assert bridge_response.json()["websocket_url"].startswith("ws://")
+
+    revoke_response = await auth_client.delete(
+        f"/pro/workspace-mcp/tokens/{token_uuid}"
+    )
+    assert revoke_response.status_code == 204
