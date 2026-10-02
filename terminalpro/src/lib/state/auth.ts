@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 import { logout, putEnabledBundles } from "~/api/auth.api";
+import { isOnPremDeployment } from "~/lib/onPremFeatureFlags";
 import { getConfig } from "~/lib/runtimeConfig";
 import type { Selector, Ticker } from "~/lib/state/app";
 import { useBackendConnectorStore } from "~/lib/state/backendConnector";
@@ -329,6 +330,7 @@ export const useAuthStore = createWithEqualityFn<AuthState>()(
 
           const user = data.user;
           const isOnboardingValid =
+            isOnPremDeployment() ||
             onboardingQuestions?.skipOnboarding ||
             Boolean(
               user.first_name &&
