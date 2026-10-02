@@ -393,12 +393,6 @@
             },
             "widget_type": {
               "description": "Use widget_type='note' for rich text notes such as rich_note.",
-              "enum": [
-                "note",
-                "table",
-                "chart",
-                "html"
-              ],
               "type": "string"
             }
           },
@@ -510,8 +504,16 @@
               "description": "Validate and preview without changing the workspace: returns valid, effective_params, and warnings for this exact payload. A dry run that finds problems still returns ok=true; the verdict is in the data."
             },
             "origin": {
-              "description": "Widget origin. Pass origin exactly as returned by list_available_widgets.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Widget origin. Pass origin exactly as returned by list_available_widgets."
             },
             "ui_args": {
               "anyOf": [
@@ -527,14 +529,18 @@
               "description": "Object of UI config values from the widget schema."
             },
             "widget_id": {
-              "description": "Widget type identifier from list_available_widgets or the workspace snapshot.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Widget type identifier from list_available_widgets or the workspace snapshot."
             }
           },
-          "required": [
-            "origin",
-            "widget_id"
-          ],
           "type": "object"
         },
         "tags": [],
@@ -759,18 +765,30 @@
           "additionalProperties": false,
           "properties": {
             "origin": {
-              "description": "Widget origin. Pass origin exactly as returned by list_available_widgets.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Widget origin. Pass origin exactly as returned by list_available_widgets."
             },
             "widget_id": {
-              "description": "Widget type identifier from list_available_widgets or the workspace snapshot.",
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Widget type identifier from list_available_widgets or the workspace snapshot."
             }
           },
-          "required": [
-            "origin",
-            "widget_id"
-          ],
           "type": "object"
         },
         "tags": [],
@@ -896,11 +914,6 @@
               "description": "For instantiate: optional name for the created dashboard."
             },
             "operation": {
-              "enum": [
-                "list",
-                "read",
-                "instantiate"
-              ],
               "type": "string"
             },
             "template_id": {
@@ -1009,13 +1022,6 @@
               "description": "Backend display name."
             },
             "operation": {
-              "enum": [
-                "list",
-                "add",
-                "update",
-                "refresh",
-                "remove"
-              ],
               "type": "string"
             },
             "url": {
@@ -1100,11 +1106,6 @@
               "description": "Dashboard display name. Required for create and update."
             },
             "operation": {
-              "enum": [
-                "create",
-                "read",
-                "update"
-              ],
               "type": "string"
             }
           },
@@ -1141,12 +1142,6 @@
               "description": "Dashboard UUID. Omit to target the current dashboard route. Never send placeholder strings such as active_dashboard, current_dashboard, null, or undefined; reuse session_context.current_dashboard_uuid from your previous tool result."
             },
             "operation": {
-              "enum": [
-                "create",
-                "add_tabs",
-                "remove_tabs",
-                "rename_tabs"
-              ],
               "type": "string"
             },
             "rename_map": {
@@ -1223,10 +1218,6 @@
               "description": "Dashboard UUID. Omit to target the current dashboard route. Never send placeholder strings such as active_dashboard, current_dashboard, null, or undefined; reuse session_context.current_dashboard_uuid from your previous tool result."
             },
             "operation": {
-              "enum": [
-                "dashboard",
-                "tab"
-              ],
               "type": "string"
             },
             "tab_id": {
